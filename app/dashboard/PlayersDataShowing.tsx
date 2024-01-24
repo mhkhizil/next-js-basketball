@@ -6,6 +6,9 @@ import { GiBasketballBall } from "react-icons/gi";
 import { IoIosAddCircleOutline } from "react-icons/io";
 import useTeamStore from "../../components/store/teamDataStore";
 import Modal from "./Modal";
+import { FaLocationDot, FaMapLocationDot } from "react-icons/fa6";
+import { FaEdit } from "react-icons/fa";
+import { MdDelete } from "react-icons/md";
 export interface playerData {
   id: number;
   first_name: string;
@@ -17,31 +20,19 @@ export interface playerData {
   weight_pounds: null;
 }
 interface TeamData {
-    id: number;
-    team_name: string;
-    country: string;
-    region: string;
-  }
-  
+  id: number;
+  team_name: string;
+  country: string;
+  region: string;
+}
+
 const PlayersDataShowing = () => {
-  const { teamData,createTeamData } = useTeamStore();
-  const[team,setTeam]=useState("");
-  const[region,setRegion]=useState("");
-  const[country,setCountry]=useState("");
-  const handleTeamCreate=(e:FormEvent)=>{
-    e.preventDefault();
-    if (!team && !region && !country) return;
-    const newTeamData={
-        id:Date.now(),
-        team_name:team,
-        country:country,
-        region:region
-    };
-    createTeamData(newTeamData);
-    setTeam('');
-    setCountry('');
-    setRegion('');
-  }
+  const { teamData, createTeamData, editTeamData,deletePost } = useTeamStore();
+  const [team, setTeam] = useState("");
+  const [region, setRegion] = useState("");
+  const [country, setCountry] = useState("");
+  const [teamId, setTeamId] = useState(null);
+  const [isEdit, setIsEdit] = useState(false);
   const [isCreateTeamModalOpen, setIsCreateTeamModalOpen] = useState(false);
 
   const openCreateTeamModal = () => {
@@ -51,6 +42,55 @@ const PlayersDataShowing = () => {
   const closeCreateTeamModal = () => {
     setIsCreateTeamModalOpen(false);
   };
+  const handleTeamCreate = (e: FormEvent) => {
+    e.preventDefault();
+    if (!team && !region && !country) return;
+    const newTeamData = {
+      id: Date.now(),
+      team_name: team,
+      country: country,
+      region: region,
+    };
+    createTeamData(newTeamData);
+    setTeam("");
+    setCountry("");
+    setRegion("");
+    closeCreateTeamModal();
+  };
+  const editTeam = (id: number) => {
+    const data = teamData?.filter((team: TeamData) => team?.id === id)[0];
+
+    setTeam(data.team_name);
+    setCountry(data.country);
+    setRegion(data.region);
+    setTeamId(data.id);
+    setIsEdit(true);
+    openCreateTeamModal();
+  };
+  const handleEditTeam = (e: FormEvent) => {
+    e.preventDefault();
+    if (!team && !region && !country) return;
+    const updateTeamData = {
+      id: teamId,
+      team_name: team,
+      country: country,
+      region: region,
+    };
+   
+    
+    editTeamData(updateTeamData.id, updateTeamData);
+    setTeam("");
+    setCountry("");
+    setRegion("");
+    setIsEdit(false);
+    closeCreateTeamModal();
+  };
+  const handleRemoveTeam=(id:number)=>{
+    if (confirm('Are you sure you wat to delete this team?')){
+      deletePost(id);
+    }
+
+  }
 
   const { button1State, button2State } = useBtnStore();
   const queryClient = useQueryClient();
@@ -59,7 +99,6 @@ const PlayersDataShowing = () => {
     queryFn: async () => {
       const fetching = await fetch("https://www.balldontlie.io/api/v1/players");
       const data = await fetching.json();
-      console.log(data);
 
       return data?.data as playerData[];
     },
@@ -119,11 +158,11 @@ const PlayersDataShowing = () => {
               onClick={openCreateTeamModal}
               className="mx-2 text-black bg-orange-400 hover:bg-white  text-xl font-extrabold   rounded-xl shadow-xl b  px-3 py-2"
             >
-              Create Team{" "}
+              Create Team
             </button>
           </div>
           <div className=" flex-col justify-evenly items-center  ">
-            {teamData?.map((data:TeamData) => {
+            {teamData?.map((data: TeamData) => {
               const { id, team_name, country, region } = data;
               return (
                 <div
@@ -135,9 +174,11 @@ const PlayersDataShowing = () => {
                   </div>
                   <div className="flex-1 items-center">
                     <div>
+                      <span>
+                        <FaLocationDot className=" font-light  text-black inline mx-1" />{" "}
+                      </span>
                       <h1 className=" px-1 text-black inline">{country}</h1>
                       <h1 className=" px-1 text-black inline">{region}</h1>
-                     
                     </div>
                     <div>
                       <div>
@@ -150,46 +191,53 @@ const PlayersDataShowing = () => {
                     </div>
                   </div>
                   <div className=" px-3 flex items-center justify-around">
-                    <IoIosAddCircleOutline className=" text-xl text-black" />
+                    <FaEdit
+                      onClick={() => editTeam(id)}
+                      className=" m-1 text-xl text-black cursor-pointer hover:opacity-70"
+                    />
+                    <MdDelete   onClick={() =>handleRemoveTeam(id)} className=" m-1 text-xl text-black cursor-pointer hover:opacity-70" />
                   </div>
                 </div>
               );
             })}
           </div>
           <Modal
-            title={" Create Team"}
+            title={isEdit ? "Edit team" : " Create Team"}
             isOpen={isCreateTeamModalOpen}
             onClose={closeCreateTeamModal}
           >
             {/* Content of the modal */}
-           
-            <form action="" onSubmit={handleTeamCreate}>
+
+            <form
+              action=""
+              onSubmit={isEdit ? handleEditTeam : handleTeamCreate}
+            >
               <input
-              onChange={(e)=>setTeam(e.target.value)}
-              value={team}
+                onChange={(e) => setTeam(e.target.value)}
+                value={team}
                 placeholder=" Team Name "
                 type="text"
                 className=" my-3 focus:border-orange-400 outline-none text-black rounded-md bg-slate-200  w-[80%] mx-auto block border "
               />
               <input
-               onChange={(e)=>setCountry(e.target.value)}
-              value={country}
+                onChange={(e) => setCountry(e.target.value)}
+                value={country}
                 placeholder=" Country"
-                type="Password"
+                type="text"
                 className="my-3 focus:border-orange-400 outline-none text-black   rounded-md bg-slate-200  w-[80%] mx-auto block  border "
               />
               <input
-               onChange={(e)=>setRegion(e.target.value)}
-              value={region}
+                onChange={(e) => setRegion(e.target.value)}
+                value={region}
                 placeholder=" Region"
-                type="Password"
+                type="text"
                 className="my-3 focus:border-orange-400 outline-none text-black   rounded-md bg-slate-200  w-[80%] mx-auto block  border "
               />
-            <div className="my-3 w-full flex items-center justify-center">
-            <button className="  text-black  bg-orange-400  hover:opacity-85 text-md font-extrabold   rounded-xl shadow-xl   px-3 py-2">
-                Create
-              </button>
-            </div>
+              <div className="my-3 w-full flex items-center justify-center">
+                <button className="  text-black  bg-orange-400  hover:opacity-85 text-md font-extrabold   rounded-xl shadow-xl   px-3 py-2">
+                  {isEdit ? "Edit" : "Create"}
+                </button>
+              </div>
             </form>
           </Modal>
         </div>
