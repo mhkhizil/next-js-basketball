@@ -1,5 +1,5 @@
 "use client";
-import useBtnStore from "@/components/store/switchButton";
+
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { FormEvent, useState } from "react";
 import { GiBasketballBall } from "react-icons/gi";
@@ -11,6 +11,7 @@ import { FaEdit } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import { CircleLoader } from "react-spinners";
 import { DiCelluloid } from "react-icons/di";
+import useBtnStore from "@/components/store/switchButton";
 
 export interface playerData {
   id: number;
@@ -83,7 +84,7 @@ const PlayersDataShowing = () => {
     setTeam(data.team_name);
     setCountry(data.country);
     setRegion(data.region);
-    setTeamId(data.id);
+    setTeamId(data.id );
     setIsEdit(true);
     openCreateTeamModal();
   };
