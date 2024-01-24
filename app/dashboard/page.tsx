@@ -16,7 +16,8 @@ const DashBoard = () => {
           <PlayersDataShowing/>
          
         {/* right side  */}
-        <div className=' flex-1 items-center  '> 
+      <div className=' w-[40%]'>
+      <div className=' flex-1 items-center   '> 
              <h1 className="m-3  mx-auto text-center rounded-lg shadow-md  bg-white  w-40  ">
              <GiBasketballBall className=" m-2 text-9xl text-black text-center" />
              </h1>
@@ -29,6 +30,7 @@ const DashBoard = () => {
              </div>
              <SwitchDisplayBtn/>
         </div>
+      </div>
    </div>
 
   )

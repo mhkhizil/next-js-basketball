@@ -9,6 +9,9 @@ import Modal from "./Modal";
 import { FaLocationDot, FaMapLocationDot } from "react-icons/fa6";
 import { FaEdit } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
+import { CircleLoader } from "react-spinners";
+import { DiCelluloid } from "react-icons/di";
+
 export interface playerData {
   id: number;
   first_name: string;
@@ -27,14 +30,19 @@ interface TeamData {
 }
 
 const PlayersDataShowing = () => {
-  const { teamData, createTeamData, editTeamData,deletePost } = useTeamStore();
+  const { teamData, createTeamData, editTeamData, deletePost } = useTeamStore();
   const [team, setTeam] = useState("");
   const [region, setRegion] = useState("");
   const [country, setCountry] = useState("");
   const [teamId, setTeamId] = useState(null);
   const [isEdit, setIsEdit] = useState(false);
   const [isCreateTeamModalOpen, setIsCreateTeamModalOpen] = useState(false);
-
+  const [isCreateSelectTeamModalOpen, setIsCreateSelectTeamModalOpen] =
+    useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const filteredTeams:TeamData[] = teamData.filter((team:TeamData) =>
+    team.team_name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
   const openCreateTeamModal = () => {
     setIsCreateTeamModalOpen(true);
   };
@@ -42,6 +50,18 @@ const PlayersDataShowing = () => {
   const closeCreateTeamModal = () => {
     setIsCreateTeamModalOpen(false);
   };
+  //for team modal box select
+  const openCreateSelectTeamModal = () => {
+    console.log("Opening modal");
+
+    setIsCreateSelectTeamModalOpen(true);
+    console.log(isCreateSelectTeamModalOpen);
+  };
+
+  const closeCreateSelectTeamModal = () => {
+    setIsCreateSelectTeamModalOpen(false);
+  };
+  //for team modal box select
   const handleTeamCreate = (e: FormEvent) => {
     e.preventDefault();
     if (!team && !region && !country) return;
@@ -76,8 +96,7 @@ const PlayersDataShowing = () => {
       country: country,
       region: region,
     };
-   
-    
+
     editTeamData(updateTeamData.id, updateTeamData);
     setTeam("");
     setCountry("");
@@ -85,12 +104,11 @@ const PlayersDataShowing = () => {
     setIsEdit(false);
     closeCreateTeamModal();
   };
-  const handleRemoveTeam=(id:number)=>{
-    if (confirm('Are you sure you wat to delete this team?')){
+  const handleRemoveTeam = (id: number) => {
+    if (confirm("Are you sure you wat to delete this team?")) {
       deletePost(id);
     }
-
-  }
+  };
 
   const { button1State, button2State } = useBtnStore();
   const queryClient = useQueryClient();
@@ -103,12 +121,16 @@ const PlayersDataShowing = () => {
       return data?.data as playerData[];
     },
   });
-  if (isLoading) return <div>Loading</div>;
+  if (isLoading) return (
+    <div className=" flex items-center justify-center w-[40%]  ">
+      <CircleLoader color="#573204" />
+    </div>
+  );
   if (isError) return <div>There was soem error while loading</div>;
   return (
     <>
       {button1State && (
-        <div className=" max-h-screen   overflow-auto flex-1 items-center justify-center ">
+        <div className=" max-h-screen   overflow-auto flex-1 items-center justify-center w-[40%] ">
           <h2 className=" text-2xl text-center text-black font-extrabold tracking-widest">
             Players
           </h2>
@@ -140,16 +162,47 @@ const PlayersDataShowing = () => {
                     </div>
                   </div>
                   <div className=" px-3 flex items-center justify-around">
-                    <IoIosAddCircleOutline className=" text-xl text-black" />
+                    <h1
+                      onClick={openCreateSelectTeamModal}
+                      className="  cursor-pointer hover:opacity-75 p-1 rounded-xl bg-orange-400 text-xs text-black "
+                    >
+                      {" "}
+                      Select Team
+                    </h1>
+                    {/* <IoIosAddCircleOutline className=" " /> */}
                   </div>
                 </div>
               );
             })}
           </div>
+          {/* modal for select team */}
+          <Modal
+            title={"Search Team"}
+            isOpen={isCreateSelectTeamModalOpen}
+            onClose={closeCreateSelectTeamModal}
+          >
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search team"
+              className=" p-3 text-black shadow-xl rounded-2xl bg-slate-200 border border-orange-400"
+            />
+            <h1 className=" text-orange-400 font-extrabold my-3">Teams</h1>
+     <div className=" max-h-24 overflow-auto">
+     {filteredTeams.map((filteredTeam) => (
+    <div key={filteredTeam.id} className="  ">
+      {/* Display information about the filtered team */}
+      <p className=" text-black">{filteredTeam.team_name}</p>
+      {/* Add additional information as needed */}
+    </div>
+  ))}
+     </div>
+          </Modal>
         </div>
       )}
       {button2State && (
-        <div className=" max-h-screen   overflow-auto flex-1 items-center justify-center ">
+        <div className=" max-h-screen   overflow-auto flex-1 items-center justify-center w-[40%] ">
           <div className=" flex items-center justify-between">
             <h2 className=" text-2xl text-center text-black font-extrabold tracking-widest">
               Teams
@@ -195,7 +248,10 @@ const PlayersDataShowing = () => {
                       onClick={() => editTeam(id)}
                       className=" m-1 text-xl text-black cursor-pointer hover:opacity-70"
                     />
-                    <MdDelete   onClick={() =>handleRemoveTeam(id)} className=" m-1 text-xl text-black cursor-pointer hover:opacity-70" />
+                    <MdDelete
+                      onClick={() => handleRemoveTeam(id)}
+                      className=" m-1 text-xl text-black cursor-pointer hover:opacity-70"
+                    />
                   </div>
                 </div>
               );
